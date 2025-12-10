@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIGB // QUALITY CORE</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <header>
+        <div>
+            <h1>SIGB // QUALITY CORE</h1>
+            <div class="sub-header">ISO 25010 / 29110 / 9001 COMPLIANCE</div>
+        </div>
+        <div style="text-align: right;">
+            <div style="font-size: 0.7rem; color: #888; font-weight: bold;">SYSTEM STATUS</div>
+            <div style="font-size: 1.2rem; color: var(--corp-black); font-weight: 900;">OPERATIONAL</div>
+        </div>
+    </header>
+
+    <div class="main-grid">
+
+        <!-- COLUMNA 1: LOGS Y GRÁFICO -->
+        <div class="col">
+            <div class="panel" style="flex: 0 0 auto; min-height: 200px;">
+                <h2>Ingesta de Logs [RAW]</h2>
+                <label>Input del Servidor</label>
+                <textarea id="logInput" placeholder="// PEGAR REGISTROS AQUÍ..."></textarea>
+                <button onclick="procesarTodo()">Procesar Datos >></button>
+            </div>
+            
+            <div class="panel" style="flex: 1; min-height: 250px; display: flex; flex-direction: column;">
+                <h2>Análisis de Latencia (ms)</h2>
+                <div class="canvas-container" style="flex: 1; overflow: hidden;">
+                    <canvas id="miGrafico"></canvas>
+                </div>
+                <div style="margin-top:15px; display:flex; justify-content:space-between; border-top: 1px solid #eee; padding-top:10px;">
+                    <div style="text-align:center; min-width:100px;">
+                        <div style="font-size:0.6rem; color:#888; font-weight:bold;">FIABILIDAD (MTBF)</div>
+                        <div id="out-mtbf" style="font-size:1.8rem; color:#000; font-weight:900;">--</div>
+                        <div id="bdg-mtbf" style="font-size:0.6rem; font-weight:bold; background:#eee; padding:2px;">ESPERANDO</div>
+                    </div>
+                    <div style="text-align:center; min-width:100px;">
+                        <div style="font-size:0.6rem; color:#888; font-weight:bold;">RENDIMIENTO (TPR)</div>
+                        <div id="out-tpr" style="font-size:1.8rem; color:#000; font-weight:900;">--</div>
+                        <div id="bdg-tpr" style="font-size:0.6rem; font-weight:bold; background:#eee; padding:2px;">ESPERANDO</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- COLUMNA 2: INPUTS MANUALES -->
+        <div class="col" style="overflow-y:scroll; padding-right:5px;">
+            
+            <div class="panel">
+                <h2>02. Procesos (ISO 29110)</h2>
+                <div class="input-group">
+                    <label>Actividades Planificadas</label>
+                    <input type="number" id="in-plan" value="15" oninput="procesarTodo()">
+                </div>
+                <div class="input-group">
+                    <label>Actividades Realizadas</label>
+                    <input type="number" id="in-real" value="13" oninput="procesarTodo()">
+                    <div class="progress-container"><div id="bar-icp" class="progress-bar"></div></div>
+                </div>
+                <div style="text-align:right; margin-top:5px;">
+                    <span style="font-size:0.7rem; font-weight:bold; color:#888;">CUMPLIMIENTO: </span>
+                    <span id="big-icp" style="font-size:1.2rem; font-weight:bold; color:#000; display:inline-block; min-width:50px;">87%</span>
+                </div>
+            </div>
+
+            <div class="panel">
+                <h2>03. Gestión (ISO 9001)</h2>
+                <div class="input-group">
+                    <label>Procesos Auditados</label>
+                    <input type="number" id="in-aud" value="4" oninput="procesarTodo()">
+                </div>
+                <div class="input-group">
+                    <label>No Conformidades (NC)</label>
+                    <input type="number" id="in-nc" value="1" oninput="procesarTodo()">
+                    <!-- Barra Roja si hay error -->
+                    <div class="progress-container" style="background:#fff; border-color:#ffcccc;">
+                        <div id="bar-nc" class="progress-bar" style="background:var(--corp-red);"></div>
+                    </div>
+                </div>
+                <div style="text-align:right; margin-top:5px;">
+                    <span style="font-size:0.7rem; font-weight:bold; color:#888;">ÍNDICE RIESGO: </span>
+                    <span id="big-nc" style="font-size:1.2rem; font-weight:bold; color:var(--corp-red); display:inline-block; min-width:50px;">25%</span>
+                </div>
+            </div>
+
+            <div class="panel">
+                <h2>04. Estructural (CISQ)</h2>
+                <div class="input-group">
+                    <label>Vuln. Críticas</label>
+                    <input type="number" id="in-vcrit" value="2" oninput="procesarTodo()">
+                </div>
+                <div class="input-group">
+                    <label>Vuln. Totales</label>
+                    <input type="number" id="in-vtot" value="14" oninput="procesarTodo()">
+                </div>
+                <div style="border-top:1px dashed #ccc; padding-top:10px; margin-top:10px;">
+                    <label>Complejidad (CC)</label>
+                    <input type="number" id="in-cc" value="7" oninput="procesarTodo()">
+                </div>
+            </div>
+
+             <div class="panel">
+                <h2>05. Usabilidad (ISO 9241)</h2>
+                <div class="input-group">
+                    <label>Tareas Totales</label>
+                    <input type="number" id="in-ttot" value="40" oninput="procesarTodo()">
+                </div>
+                 <div class="input-group">
+                    <label>Tareas Exitosas</label>
+                    <input type="number" id="in-tok" value="35" oninput="procesarTodo()">
+                </div>
+            </div>
+
+        </div>
+
+        <!-- COLUMNA 3: KPI RESULTS -->
+        <div class="col">
+            <div class="panel" style="height:100%; background:#fcfcfc;">
+                <h2>Reporte de KPIs</h2>
+                <div class="kpi-grid">
+                    
+                    <div class="kpi-card" id="card-icp">
+                        <div><div class="kpi-title">PROCESOS (ICP)</div><div class="kpi-status" id="st-icp">--</div></div>
+                        <div class="kpi-val" id="kpi-icp">--</div>
+                    </div>
+
+                    <div class="kpi-card" id="card-nc">
+                        <div><div class="kpi-title">GESTIÓN (NC)</div><div class="kpi-status" id="st-nc">--</div></div>
+                        <div class="kpi-val" id="kpi-nc">--</div>
+                    </div>
+
+                     <div class="kpi-card" id="card-ivc">
+                        <div><div class="kpi-title">SEGURIDAD (IVC)</div><div class="kpi-status" id="st-ivc">--</div></div>
+                        <div class="kpi-val" id="kpi-ivc">--</div>
+                    </div>
+
+                     <div class="kpi-card" id="card-cc">
+                        <div><div class="kpi-title">COMPLEJIDAD (CC)</div><div class="kpi-status" id="st-cc">--</div></div>
+                        <div class="kpi-val" id="kpi-cc">--</div>
+                    </div>
+
+                     <div class="kpi-card" id="card-usa">
+                        <div><div class="kpi-title">USABILIDAD</div><div class="kpi-status" id="st-usa">--</div></div>
+                        <div class="kpi-val" id="kpi-usa">--</div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
