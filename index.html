@@ -11,7 +11,7 @@
     <header>
         <div>
             <h1>SIGB // QUALITY CORE</h1>
-            <div class="sub-header">ISO 25010 / 29110 / 9001 COMPLIANCE</div>
+            <div class="sub-header">ISO 25010 / 29110 / 9001 / 25022 COMPLIANCE</div>
         </div>
         <div style="text-align: right;">
             <div style="font-size: 0.7rem; color: #888; font-weight: bold;">SYSTEM STATUS</div>
@@ -21,7 +21,6 @@
 
     <div class="main-grid">
 
-        <!-- COLUMNA 1: LOGS Y GRÁFICO -->
         <div class="col">
             <div class="panel" style="flex: 0 0 auto; min-height: 200px;">
                 <h2>Ingesta de Logs [RAW]</h2>
@@ -50,7 +49,6 @@
             </div>
         </div>
 
-        <!-- COLUMNA 2: INPUTS MANUALES -->
         <div class="col" style="overflow-y:scroll; padding-right:5px;">
             
             <div class="panel">
@@ -79,7 +77,6 @@
                 <div class="input-group">
                     <label>No Conformidades (NC)</label>
                     <input type="number" id="in-nc" value="1" oninput="procesarTodo()">
-                    <!-- Barra Roja si hay error -->
                     <div class="progress-container" style="background:#fff; border-color:#ffcccc;">
                         <div id="bar-nc" class="progress-bar" style="background:var(--corp-red);"></div>
                     </div>
@@ -87,6 +84,28 @@
                 <div style="text-align:right; margin-top:5px;">
                     <span style="font-size:0.7rem; font-weight:bold; color:#888;">ÍNDICE RIESGO: </span>
                     <span id="big-nc" style="font-size:1.2rem; font-weight:bold; color:var(--corp-red); display:inline-block; min-width:50px;">25%</span>
+                </div>
+            </div>
+
+            <div class="panel">
+                <h2>06. Calidad en Uso (ISO 25022)</h2>
+                
+                <div class="input-group">
+                    <label>Tiempo Promedio Tarea (min)</label>
+                    <input type="number" id="in-eff-time" value="5" oninput="procesarTodo()">
+                </div>
+                <div class="input-group">
+                    <label>Benchmark Industria (min)</label>
+                    <input type="number" id="in-eff-bench" value="3" oninput="procesarTodo()">
+                </div>
+                
+                <div style="border-top:1px dashed #ccc; padding-top:10px; margin-top:10px;">
+                    <label>NPS: % Promotores</label>
+                    <input type="number" id="in-nps-prom" value="65" oninput="procesarTodo()">
+                </div>
+                <div class="input-group">
+                    <label>NPS: % Detractores</label>
+                    <input type="number" id="in-nps-det" value="15" oninput="procesarTodo()">
                 </div>
             </div>
 
@@ -107,7 +126,7 @@
             </div>
 
              <div class="panel">
-                <h2>05. Usabilidad (ISO 9241)</h2>
+                <h2>05. Efectividad (ISO 25022)</h2>
                 <div class="input-group">
                     <label>Tareas Totales</label>
                     <input type="number" id="in-ttot" value="40" oninput="procesarTodo()">
@@ -120,11 +139,10 @@
 
         </div>
 
-        <!-- COLUMNA 3: KPI RESULTS -->
         <div class="col">
-            <div class="panel" style="height:100%; background:#fcfcfc;">
+            <div class="panel" style="height:100%; background:#fcfcfc; display: flex; flex-direction: column;">
                 <h2>Reporte de KPIs</h2>
-                <div class="kpi-grid">
+                <div class="kpi-grid" style="flex: 1;">
                     
                     <div class="kpi-card" id="card-icp">
                         <div><div class="kpi-title">PROCESOS (ICP)</div><div class="kpi-status" id="st-icp">--</div></div>
@@ -146,15 +164,39 @@
                         <div class="kpi-val" id="kpi-cc">--</div>
                     </div>
 
-                     <div class="kpi-card" id="card-usa">
-                        <div><div class="kpi-title">USABILIDAD</div><div class="kpi-status" id="st-usa">--</div></div>
+                    <div class="kpi-card" id="card-usa">
+                        <div><div class="kpi-title">EFECTIVIDAD</div><div class="kpi-status" id="st-usa">--</div></div>
                         <div class="kpi-val" id="kpi-usa">--</div>
                     </div>
 
+                    <div class="kpi-card" id="card-eff">
+                        <div><div class="kpi-title">EFICIENCIA</div><div class="kpi-status" id="st-eff">--</div></div>
+                        <div class="kpi-val" id="kpi-eff">--</div>
+                    </div>
+                    
+                     <div class="kpi-card" id="card-nps">
+                        <div><div class="kpi-title">SATISFACCIÓN (NPS)</div><div class="kpi-status" id="st-nps">--</div></div>
+                        <div class="kpi-val" id="kpi-nps">--</div>
+                    </div>
+
                 </div>
+                
+                <button id="btn-report" onclick="generarReporte()" style="margin-top: 20px; background: var(--corp-red); border-left: 5px solid var(--corp-dark-red);">GENERAR REPORTE INTEGRAL</button>
             </div>
         </div>
 
+    </div>
+
+    <div id="modal-overlay" class="hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>/// REPORTE EJECUTIVO DE CALIDAD</h2>
+                <button class="close-btn" onclick="cerrarReporte()">X</button>
+            </div>
+            <div id="report-body" class="report-text">
+                </div>
+            <button onclick="window.print()" style="margin-top:10px;">IMPRIMIR / PDF</button>
+        </div>
     </div>
 
     <script src="app.js"></script>

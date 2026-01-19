@@ -20,12 +20,15 @@ function procesarLogs() {
         if (matchD) fechas.push(new Date(matchD[0]));
     });
 
-    // MTBF
+    // MTBF (Fiabilidad)
     let horas = 24;
     if (fechas.length >= 2) horas = Math.abs(fechas[fechas.length-1] - fechas[0]) / 36e5;
     if (horas < 1) horas = 1;
     let mtbf = fallos > 0 ? (horas / fallos) : horas;
     
+    // Almacenar globalmente para el reporte (usando atributo data en body es un truco rapido)
+    document.body.dataset.mtbf = mtbf;
+
     let elMtbf = document.getElementById('out-mtbf');
     let elBdgMtbf = document.getElementById('bdg-mtbf');
     elMtbf.innerText = mtbf.toFixed(1) + ' H';
@@ -41,10 +44,11 @@ function procesarLogs() {
         elBdgMtbf.style.color='#fff';
     }
 
-    // TPR
+    // TPR (Rendimiento)
     let tpr = 0;
     if (tiempos.length > 0) tpr = tiempos.reduce((a,b)=>a+b, 0) / tiempos.length;
-    
+    document.body.dataset.tpr = tpr;
+
     let elTpr = document.getElementById('out-tpr');
     let elBdgTpr = document.getElementById('bdg-tpr');
     elTpr.innerText = tpr.toFixed(0) + ' ms';
@@ -64,32 +68,55 @@ function procesarLogs() {
 }
 
 function procesarManuales() {
-    // ISO 29110
+    // ISO 29110 - Procesos
     let plan = v('in-plan'); let real = v('in-real');
     let icp = plan > 0 ? (real/plan)*100 : 0;
     document.getElementById('big-icp').innerText = icp.toFixed(0) + "%";
     document.getElementById('bar-icp').style.width = Math.min(icp, 100) + "%";
     updateCard('icp', icp.toFixed(0)+'%', icp, [50, 85], true);
+    document.body.dataset.icp = icp;
 
-    // ISO 9001
+    // ISO 9001 - Gestion
     let aud = v('in-aud'); let nc = v('in-nc');
     let rnc = aud > 0 ? (nc/aud)*100 : 0;
     document.getElementById('big-nc').innerText = rnc.toFixed(0) + "%";
     document.getElementById('bar-nc').style.width = Math.min(rnc, 100) + "%";
     updateCard('nc', rnc.toFixed(0)+'%', rnc, [10, 25], false);
+    document.body.dataset.rnc = rnc;
 
-    // CISQ
+    // CISQ - Seguridad
     let vtot = v('in-vtot'); let vcrit = v('in-vcrit');
     let ivc = vtot > 0 ? (vcrit/vtot)*100 : 0;
     updateCard('ivc', ivc.toFixed(1)+'%', ivc, [0.1, 10], false);
+    document.body.dataset.ivc = ivc;
     
     let cc = v('in-cc');
     updateCard('cc', cc, cc, [10, 20], false);
+    document.body.dataset.cc = cc;
 
-    // USABILIDAD
+    // ISO 25022 - Efectividad (Tasa de Completitud)
+    // Formula: (Tareas Exitosas / Totales) * 100
     let ttot = v('in-ttot'); let tok = v('in-tok');
     let usa = ttot > 0 ? (tok/ttot)*100 : 0;
     updateCard('usa', usa.toFixed(0)+'%', usa, [70, 90], true);
+    document.body.dataset.usa = usa;
+
+    // ISO 25022 - Eficiencia
+    // Métrica: Comparación con Benchmark. Si Tiempo Real > Benchmark es malo.
+    let time = v('in-eff-time');
+    let bench = v('in-eff-bench');
+    // Calculo inverso: Que tan eficiente es respecto al benchmark (100% = igual, <100% mas lento)
+    let eff = time > 0 ? (bench/time)*100 : 0;
+    updateCard('eff', eff.toFixed(0)+'%', eff, [60, 95], true);
+    document.body.dataset.eff = eff;
+
+    // ISO 25022 - Satisfacción (NPS)
+    // NPS = %Promotores - %Detractores
+    let prom = v('in-nps-prom');
+    let det = v('in-nps-det');
+    let nps = prom - det;
+    updateCard('nps', nps.toFixed(0), nps, [0, 30], true); // NPS > 30 es bueno, < 0 es critico
+    document.body.dataset.nps = nps;
 }
 
 function updateCard(id, txt, val, limits, higherIsBetter) {
@@ -107,9 +134,11 @@ function updateCard(id, txt, val, limits, higherIsBetter) {
     if(isOk) {
         card.className = "kpi-card status-ok";
         elSt.innerText = "NORMAL";
+        card.dataset.status = "OK";
     } else {
         card.className = "kpi-card status-alert";
         elSt.innerText = "ALERTA";
+        card.dataset.status = "ALERT";
     }
 }
 
@@ -165,6 +194,95 @@ function dibujarGrafico(data) {
     ctx.strokeStyle = "#ff2a2a";
     ctx.lineWidth = 2;
     ctx.stroke();
+}
+
+// --- FUNCIONES DE REPORTE ---
+
+function generarReporte() {
+    // 1. Recopilar Datos
+    const data = document.body.dataset;
+    const now = new Date();
+    
+    let reportText = "";
+    reportText += "==================================================\n";
+    reportText += " REPORTE INTEGRAL DE CALIDAD DE SOFTWARE (SQA)\n";
+    reportText += "==================================================\n";
+    reportText += "FECHA: " + now.toLocaleString() + "\n";
+    reportText += "SISTEMA: SIGB // CORE\n\n";
+
+    // 2. Interpretación ISO 25022 (Calidad en Uso)
+    reportText += ">>> 01. CALIDAD EN USO (ISO/IEC 25022)\n";
+    reportText += "--------------------------------------\n";
+    
+    // Efectividad 
+    reportText += "[EFECTIVIDAD] Tasa de Éxito: " + data.usa + "%\n";
+    if(parseFloat(data.usa) >= 90) {
+        reportText += "INTERPRETACIÓN: Alta efectividad. Los usuarios completan sus tareas sin fricción significativa.\n";
+    } else {
+        reportText += "INTERPRETACIÓN: ALERTA. Hay barreras de usabilidad que impiden completar flujos críticos.\n";
+    }
+    reportText += "\n";
+
+    // Eficiencia 
+    reportText += "[EFICIENCIA] Índice Relativo al Benchmark: " + data.eff + "%\n";
+    if(parseFloat(data.eff) >= 95) {
+        reportText += "INTERPRETACIÓN: El sistema es rápido y productivo, igualando o superando estándares.\n";
+    } else {
+        reportText += "INTERPRETACIÓN: Baja productividad. El sistema requiere más tiempo del esperado para tareas estándar.\n";
+    }
+    reportText += "\n";
+
+    // Satisfacción 
+    reportText += "[SATISFACCIÓN] NPS: " + data.nps + "\n";
+    if(parseFloat(data.nps) > 30) {
+        reportText += "INTERPRETACIÓN: Excelente percepción del usuario (Zona de Excelencia).\n";
+    } else if (parseFloat(data.nps) > 0) {
+        reportText += "INTERPRETACIÓN: Aceptable, pero con riesgo de churn (Zona de Crecimiento).\n";
+    } else {
+        reportText += "INTERPRETACIÓN: CRÍTICO. Hay más detractores que promotores. Revisar UX urgentemente.\n";
+    }
+    
+    // 3. Interpretación Técnica
+    reportText += "\n\n>>> 02. SALUD TÉCNICA DEL SISTEMA\n";
+    reportText += "--------------------------------------\n";
+    
+    // MTBF
+    let mtbf = parseFloat(data.mtbf);
+    reportText += "[FIABILIDAD] MTBF Actual: " + mtbf.toFixed(1) + " Horas\n";
+    if(mtbf < 10) reportText += "ESTADO: INESTABLE. Se requieren revisiones de logs de error inmediatas.\n";
+    else reportText += "ESTADO: ESTABLE. Continuar monitoreo.\n";
+
+    // Seguridad
+    let ivc = parseFloat(data.ivc);
+    reportText += "[SEGURIDAD] Vulnerabilidades Críticas: " + ivc.toFixed(1) + "%\n";
+    if(ivc > 5) reportText += "ACCIÓN: Auditoría de seguridad requerida. Nivel de riesgo inaceptable.\n";
+    else reportText += "ACCIÓN: Mantener parches de seguridad actualizados.\n";
+
+    // 4. Conclusión Final
+    reportText += "\n==================================================\n";
+    reportText += "CONCLUSIÓN GENERADA AUTOMÁTICAMENTE:\n";
+    
+    let score = 0;
+    if(parseFloat(data.usa) > 85) score++;
+    if(parseFloat(data.eff) > 90) score++;
+    if(parseFloat(data.nps) > 20) score++;
+    if(parseFloat(data.mtbf) > 20) score++;
+
+    if(score >= 3) {
+        reportText += "El sistema se encuentra en estado SALUDABLE. Se recomienda mantener las políticas actuales.";
+    } else if (score >= 1) {
+        reportText += "El sistema requiere ATENCIÓN EN ÁREAS ESPECÍFICAS. Revisar las métricas marcadas en ALERTA.";
+    } else {
+        reportText += "ESTADO CRÍTICO GENERAL. Se recomienda detener despliegues hasta estabilizar indicadores.";
+    }
+
+    // 5. Mostrar Modal
+    document.getElementById('report-body').innerText = reportText;
+    document.getElementById('modal-overlay').classList.remove('hidden');
+}
+
+function cerrarReporte() {
+    document.getElementById('modal-overlay').classList.add('hidden');
 }
 
 // Inicialización
